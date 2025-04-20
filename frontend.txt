@@ -1,0 +1,52 @@
+frontend/
+├── public/
+│   └── index.html
+├── src/
+│   ├── assets/              # Static assets like images, fonts, icons
+│   │   ├── images/
+│   │   └── fonts/
+│   ├── components/          # Reusable, generic UI components (Button, Input, Modal, etc.)
+│   │   ├── Button/
+│   │   │   ├── Button.jsx
+│   │   │   └── Button.module.css
+│   │   └── ...
+│   ├── config/              # Configuration files (e.g., API base URLs)
+│   │   └── index.js
+│   ├── contexts/            # React Context API providers (e.g., AuthContext, ThemeContext)
+│   │   └── AuthContext.js
+│   ├── features/            # Components, hooks, services grouped by application feature
+│   │   ├── auth/
+│   │   │   ├── components/  # Components specific to auth (LoginForm, RegisterForm)
+│   │   │   ├── hooks/       # Hooks specific to auth (useAuth)
+│   │   │   └── services/    # API calls specific to auth
+│   │   ├── chat/
+│   │   │   ├── components/  # ChatWindow, MessageList, ContactList
+│   │   │   ├── hooks/       # useChat, useWebSocket
+│   │   │   ├── services/    # Chat API calls, WebSocket setup
+│   │   │   └── state/       # State management specific to chat (if complex)
+│   │   └── video/
+│   │       ├── components/  # VideoCallWindow, Controls
+│   │       ├── hooks/       # useWebRTC, useSignaling
+│   │       └── services/    # WebRTC setup helpers
+│   ├── hooks/               # Common, reusable custom hooks (e.g., useLocalStorage)
+│   ├── layouts/             # Layout components (e.g., MainLayout with header/sidebar)
+│   ├── pages/               # Top-level components mapped to routes (LoginPage, ChatPage)
+│   │   ├── LoginPage.jsx
+│   │   └── ChatPage.jsx
+│   ├── services/            # General API service setup (e.g., axios instance) or shared services
+│   │   └── apiClient.js
+│   ├── store/               # Global state management setup (if using Redux, Zustand)
+│   │   ├── index.js
+│   │   └── slices/
+│   ├── styles/              # Global CSS, themes, base styles
+│   │   ├── global.css
+│   │   └── theme.js
+│   ├── utils/               # Utility functions (date formatting, validation, etc.)
+│   ├── App.jsx              # Main application component (routing setup)
+│   └── index.js (or main.jsx) # Application entry point
+│
+├── .env                     # Environment variables
+├── .gitignore
+├── package.json
+├── vite.config.js (or similar config for your build tool)
+└── README.md

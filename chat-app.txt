@@ -1,0 +1,39 @@
+chat-app/
+├── .git/
+├── backend/                 # Parent directory for all backend microservices
+│   ├── api-gateway/         # Spring Boot API Gateway Service
+│   │   ├── src/
+│   │   ├── pom.xml (or build.gradle)
+│   │   └── Dockerfile (optional)
+│   ├── auth-service/        # Spring Boot Authentication Service
+│   │   ├── src/
+│   │   ├── pom.xml (or build.gradle)
+│   │   └── Dockerfile (optional)
+│   ├── user-service/        # Spring Boot User Service
+│   │   ├── src/
+│   │   ├── pom.xml (or build.gradle)
+│   │   └── Dockerfile (optional)
+│   ├── chat-service/        # Spring Boot Chat Service (Text & Signaling)
+│   │   ├── src/
+│   │   ├── pom.xml (or build.gradle)
+│   │   └── Dockerfile (optional)
+│   └── file-service/        # Spring Boot File Handling Service
+│       ├── src/
+│       ├── pom.xml (or build.gradle)
+│       └── Dockerfile (optional)
+│
+├── frontend/                # React Frontend Application
+│   ├── public/
+│   ├── src/
+│   ├── package.json
+│   ├── Dockerfile (optional)
+│   └── ... (other React config files like vite.config.js, .env, etc.)
+│
+├── docker/                  # Optional: Centralized Docker configurations
+│   └── docker-compose.yml   # For running all services locally
+│
+├── scripts/                 # Optional: Build scripts, utility scripts
+│
+├── .gitignore               # Git ignore rules for all components
+├── README.md                # Main project documentation
+└── pom.xml (or build.gradle) # Optional: Root build file for multi-module builds

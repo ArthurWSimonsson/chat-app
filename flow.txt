@@ -1,0 +1,99 @@
+kay, let's trace the typical flows within your Spring Boot auth-service application, based on the components we've discussed (Controllers, Services, Repositories, Spring Security with JWT). This assumes the setup as of Friday, April 18, 2025 at 12:25 PM CEST in Älta, Sweden.
+
+Flow 1: Application Startup
+
+    You run the main method in your AuthServiceApplication.java.
+    Spring Boot starts up, performing auto-configuration based on your dependencies (spring-boot-starter-web, -data-jpa, -security, etc.).
+    Component Scan: Spring scans packages (starting from where AuthServiceApplication is located) for classes annotated with @Component, @Service, @Repository, @RestController, @Configuration, etc.
+    Bean Creation & DI: The Spring IoC container creates instances (beans) of these discovered components (e.g., AuthController, AuthService, UserRepository implementation, UserDetailsServiceImpl, JwtUtils, PasswordEncoder, AuthTokenFilter, AuthEntryPointJwt). As it creates these beans, it performs Dependency Injection – providing required dependencies via constructors (preferred) or @Autowired. For example, UserRepository and PasswordEncoder are injected into AuthService.
+    Security Configuration: Your SecurityConfig class (@Configuration) is processed. The SecurityFilterChain bean is created. This configures:
+        Which endpoints are public (/api/auth/**) and which require authentication (anyRequest().authenticated()).
+        Session management to be STATELESS.
+        CSRF to be disabled (common for stateless APIs).
+        The custom AuthTokenFilter to be added to the filter chain (addFilterBefore).
+        The AuthEntryPointJwt to handle unauthorized access attempts.
+        The DaoAuthenticationProvider (configured implicitly or explicitly) which uses your UserDetailsServiceImpl and PasswordEncoder for username/password checks.
+    Database Connection: The DataSource (e.g., HikariCP connection pool) is configured using your application.properties and connects to your PostgreSQL database.
+    JPA/Hibernate Setup: Hibernate initializes, potentially validates or updates the database schema based on your entities (User) and the spring.jpa.hibernate.ddl-auto property.
+    Web Server Start: The embedded web server (Tomcat by default) starts and begins listening for incoming HTTP requests on the configured port (e.g., 8081).
+    The application is now ready.
+
+Flow 2: User Registration (POST /api/auth/register)
+
+    A client (e.g., Postman, your future React app) sends an HTTP POST request to /api/auth/register with a JSON body containing username and password.
+    The request arrives at the embedded Tomcat server.
+    It goes through the standard Servlet filters, eventually reaching Spring's DispatcherServlet.
+    The DispatcherServlet routes the request to the appropriate handler method - AuthController.registerUser().
+    Spring Security Filter Chain: The request passes through the security filters. Because /api/auth/** is configured with .permitAll(), security checks like authentication aren't enforced here, allowing the request to proceed. Your AuthTokenFilter might still run but won't block based on a missing/invalid token for this path.
+    Controller (AuthController):
+        Jackson library (part of spring-boot-starter-web) deserializes the JSON request body into a RegisterRequest DTO object.
+        @Valid annotation triggers bean validation based on annotations in RegisterRequest (e.g., @NotBlank, @Size). If validation fails, Spring typically returns a 400 Bad Request response immediately.
+        The registerUser method in the controller is called.
+    Service (AuthService):
+        The controller calls authService.registerUser(registerRequest).
+        The service checks if the username exists using userRepository.existsByUsername(...).
+        If it exists, it throws an exception (e.g., RuntimeException or a custom one).
+        If it doesn't exist, it encodes the password using the injected PasswordEncoder.
+        It creates a new User entity, sets the username, hashed password, and default roles (e.g., Role.ROLE_USER).
+        It calls userRepository.save(user).
+    Repository/JPA/Hibernate:
+        Spring Data JPA generates the implementation for save().
+        Hibernate translates this into SQL INSERT statements for the app_users table and the user_roles join table.
+        The SQL is executed against the PostgreSQL database within a transaction (if @Transactional is used).
+    Back to Service: The saved User object (with generated ID) is returned to the service (or the method completes).
+    Back to Controller: The service returns control to the controller. The controller catches any exceptions (like the username exists exception) or handles the success case.
+    Response: The controller creates a ResponseEntity (e.g., 201 Created on success with a message, or 400 Bad Request on error) which gets serialized back to JSON (if applicable) and sent back through the servlet container to the client.
+
+Flow 3: User Login (POST /api/auth/login)
+
+    Client sends POST to /api/auth/login with username and password JSON.
+    Request hits Tomcat -> DispatcherServlet -> AuthController.authenticateUser().
+    Security filter chain allows request due to permitAll().
+    Controller deserializes JSON to LoginRequest DTO, validation runs.
+    Controller calls authService.authenticateAndGenerateToken(loginRequest).
+    Service (AuthService):
+        Calls authenticationManager.authenticate(...), passing a UsernamePasswordAuthenticationToken containing the raw credentials from the request.
+    Authentication Manager (AuthenticationManager -> DaoAuthenticationProvider):
+        Calls UserDetailsServiceImpl.loadUserByUsername(...) using the provided username.
+        UserDetailsService: Calls userRepository.findByUsername(...) to fetch the User entity from the database. If not found, throws UsernameNotFoundException.
+        UserDetailsService: Creates a org.springframework.security.core.userdetails.User object containing the username, hashed password from the DB, and authorities (roles).
+        DaoAuthenticationProvider: Compares the password from the UsernamePasswordAuthenticationToken (raw password from request) with the hashed password from the loaded UserDetails using the configured PasswordEncoder (passwordEncoder.matches(...)).
+        If passwords don't match, throws BadCredentialsException.
+        If passwords match and user details are valid (enabled, not locked etc.), it returns a fully authenticated Authentication object containing the UserDetails and granted authorities.
+    Back to Service (AuthService):
+        If authenticate threw an exception, the service likely lets it propagate (or catches & re-throws).
+        If authenticate succeeded, it gets the Authentication object.
+        It sets this Authentication object in the SecurityContextHolder.
+        It calls jwtUtils.generateJwtToken(authentication) to create the JWT string, including username and roles as claims, signed with the secret key.
+        It returns the JWT string.
+    Back to Controller (AuthController):
+        If an AuthenticationException occurred, the catch block handles it, returning 401 Unauthorized.
+        If login succeeded, it receives the JWT string from the service.
+        It potentially retrieves user details from the SecurityContextHolder to build a richer response.
+        It creates a JwtResponse DTO containing the token ("Bearer" type) and other info.
+        It returns a ResponseEntity (200 OK) with the JwtResponse body.
+    Response sent back to the client. The client now stores this JWT for subsequent requests.
+
+Flow 4: Authenticated Request (e.g., GET /api/some-protected-resource)
+
+    Client sends request (e.g., GET) to a protected URL, including the JWT in the header: Authorization: Bearer <jwt_token>.
+    Request hits Tomcat -> DispatcherServlet.
+    Spring Security Filter Chain:
+        Request eventually hits your AuthTokenFilter (because it was added with addFilterBefore).
+        AuthTokenFilter.doFilterInternal executes:
+            parseJwt extracts the <jwt_token> string from the header.
+            jwtUtils.validateJwtToken validates the token's signature and expiration using the secret key.
+            If valid:
+                jwtUtils.getUserNameFromJwtToken gets the username from the token's subject claim.
+                userDetailsService.loadUserByUsername fetches the corresponding UserDetails (with current roles/status) from the database.
+                A new UsernamePasswordAuthenticationToken is created using the loaded UserDetails (principal), null (credentials), and the authorities.
+                SecurityContextHolder.getContext().setAuthentication(...) stores this Authentication object, marking the user as authenticated for this request.
+        Request continues down the filter chain.
+    Authorization: Spring Security's authorization mechanisms (e.g., configured rules in SecurityConfig like anyRequest().authenticated() or method-level security like @PreAuthorize) check the Authentication object in the SecurityContextHolder.
+        Does the user have the required role/authority for /api/some-protected-resource?
+        If Yes: The filter chain allows the request to proceed to the DispatcherServlet and then to the target controller method.
+        If No: An AccessDeniedException is thrown. This is typically caught by Spring's ExceptionTranslationFilter, which then delegates to an AccessDeniedHandler (or uses the AuthenticationEntryPoint if authentication was missing entirely), usually resulting in a 403 Forbidden response.
+    Controller: If authorized, the controller method for /api/some-protected-resource executes. It can access the authenticated user's details via @AuthenticationPrincipal or SecurityContextHolder if needed.
+    Response: The controller returns a ResponseEntity, which is sent back to the client.
+
+These flows cover the main interactions within your authentication service using Spring Security and JWT.

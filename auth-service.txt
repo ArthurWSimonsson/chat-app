@@ -1,0 +1,28 @@
+auth-service/
+├── src/
+│   ├── main/
+│   │   ├── java/
+│   │   │   └── com/yourcompany/chatapp/auth/  # Your base package
+│   │   │       ├── config/                    # Spring @Configuration classes (SecurityConfig, Bean definitions)
+│   │   │       ├── controller/ (or web/rest)  # REST API controllers (@RestController)
+│   │   │       ├── dto/                       # Data Transfer Objects (for API requests/responses)
+│   │   │       ├── exception/                 # Custom exceptions and @ControllerAdvice handlers
+│   │   │       ├── model/ (or domain/entity)  # Data entities (@Entity) or core domain objects
+│   │   │       ├── repository/                # Spring Data JPA repositories (@Repository interfaces)
+│   │   │       ├── security/                  # JWT utilities, UserDetailsService impl, filters
+│   │   │       ├── service/                   # Business logic layer (@Service implementations)
+│   │   │       ├── util/                      # Utility classes specific to this service
+│   │   │       └── AuthServiceApplication.java # Main @SpringBootApplication class
+│   │   └── resources/
+│   │       ├── application.yml (or .properties) # Main configuration
+│   │       ├── application-dev.yml            # Profile-specific config
+│   │       ├── application-prod.yml           # Profile-specific config
+│   │       ├── db/migration/                  # Optional: Database migration scripts (Flyway/Liquibase)
+│   │       └── static/, templates/            # Usually not needed for pure backend APIs
+│   └── test/
+│       └── java/
+│           └── com/yourcompany/chatapp/auth/  # Unit and integration tests mirroring main structure
+│
+├── pom.xml (or build.gradle)                  # Project build configuration
+├── Dockerfile                                 # Instructions to containerize this service
+└── README.md                                  # Service-specific documentation
