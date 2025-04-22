@@ -33,6 +33,7 @@ public class AuthTokenFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         
+
         String path = request.getRequestURI();
         if (path.startsWith("/api/auth/")) {
                     // Do not process JWT for login/register endpoints

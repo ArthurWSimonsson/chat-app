@@ -1,5 +1,6 @@
 package com.md.chatapp.auth_service.controller;
 
+import com.md.chatapp.auth_service.dto.ApiResponse;
 import com.md.chatapp.auth_service.dto.JwtResponse;
 import com.md.chatapp.auth_service.dto.LoginRequest;
 import com.md.chatapp.auth_service.dto.RegisterRequest;
@@ -38,26 +39,31 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         logger.info("Attempting registration for user: {}", registerRequest.getUsername());
-        try {
+        //try {
             authService.registerUser(registerRequest);
             logger.info("User registered successfully: {}", registerRequest.getUsername());
             return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
-        } catch (RuntimeException e) {
-            logger.error("Registration failed for user {}: {}", registerRequest.getUsername(), e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(e.getMessage()); 
-        }
+        //} catch (RuntimeException e) {
+        //    logger.error("Registration failed for user {}: {}", registerRequest.getUsername(), e.getMessage());
+        //    return ResponseEntity
+        //            .status(HttpStatus.BAD_REQUEST)
+        //            .body(e.getMessage()); 
+        //}
     }
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
        
         logger.info("Attempting login for user: {}", loginRequest.getUsername());
-        try {
+        //try {
             String jwt = authService.authenticateAndGenerateToken(loginRequest);
-
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            
+            if (authentication == null || !authentication.isAuthenticated()) {
+                logger.error("Authentication object not found in SecurityContext after successful token generation for {}", loginRequest.getUsername());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false, "Error retrieving user details after login."));
+           }
+
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(item -> item.getAuthority())
@@ -74,16 +80,16 @@ public class AuthController {
                     roles
             ));
 
-        } catch (AuthenticationException e) {
-             logger.error("Authentication failed for user {}: {}", loginRequest.getUsername(), e.getMessage());
-            return ResponseEntity
-                    .status(HttpStatus.UNAUTHORIZED) // 401 Unauthorize
-                    .body("Login failed: Invalid credentials"); 
-        } catch (Exception e) {
-             logger.error("Unexpected login error for user {}: {}", loginRequest.getUsername(), e.getMessage(), e);
-             return ResponseEntity
-                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                     .body("An internal error occurred during login.");
-        }
+      //  } catch (AuthenticationException e) {
+      //       logger.error("Authentication failed for user {}: {}", loginRequest.getUsername(), e.getMessage());
+      //      return ResponseEntity
+      //              .status(HttpStatus.UNAUTHORIZED) // 401 Unauthorize
+      //              .body(new ApiResponse(false, "Login failed: Invalid credentials")); // Use the DTO 
+      //  } catch (Exception e) {
+      //       logger.error("Unexpected login error for user {}: {}", loginRequest.getUsername(), e.getMessage(), e);
+      //       return ResponseEntity
+      //               .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      //               .body(new ApiResponse(false, "An internal error occurred during login."));
+      //  }
     }
 }
