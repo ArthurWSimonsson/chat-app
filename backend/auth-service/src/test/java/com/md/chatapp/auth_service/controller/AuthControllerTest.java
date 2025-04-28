@@ -45,6 +45,7 @@ class AuthControllerTest {
         // or configure test DB to be cleaned. Using unique names per test is safer.
         registerRequest.setUsername("testregisteruser");
         registerRequest.setPassword("password123");
+        registerRequest.setEmail("placeholder@email.com");
 
         // Convert the request object to a JSON string
         String registerRequestJson = objectMapper.writeValueAsString(registerRequest);
@@ -68,7 +69,8 @@ class AuthControllerTest {
         // Arrange
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("db_test_user_01"); 
-        loginRequest.setPassword("password123"); 
+        loginRequest.setPassword("password123");
+        loginRequest.setEmail("placeholder_1@example.com");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -87,6 +89,7 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("db_test_user_01"); // Use a known user
         loginRequest.setPassword("wrongpassword"); // Use incorrect password
+        loginRequest.setEmail("placeholder@email.com");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -102,6 +105,7 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("nosuchuser"); // Use non-existent user
         loginRequest.setPassword("password123");
+        loginRequest.setEmail("placeholder@email.com");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

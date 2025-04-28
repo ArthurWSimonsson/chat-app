@@ -4,6 +4,7 @@ import com.md.chatapp.auth_service.dto.ApiResponse;
 import com.md.chatapp.auth_service.dto.JwtResponse;
 import com.md.chatapp.auth_service.dto.LoginRequest;
 import com.md.chatapp.auth_service.dto.RegisterRequest;
+import com.md.chatapp.auth_service.security.UserDetailsImpl;
 import com.md.chatapp.auth_service.service.AuthService;
 
 import jakarta.validation.Valid;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@CrossOrigin(origins = "*", maxAge = 3600) // TODO: Configure CORS properly for your frontend origin later
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -64,7 +64,8 @@ public class AuthController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ApiResponse(false, "Error retrieving user details after login."));
            }
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+            // UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             List<String> roles = userDetails.getAuthorities().stream()
                     .map(item -> item.getAuthority())
                     .collect(Collectors.toList());
@@ -73,11 +74,12 @@ public class AuthController {
 
             // Return the JWT and user details in the response body
             return ResponseEntity.ok(new JwtResponse(
-                    jwt, // The token
+                    jwt,
                     "Bearer", // Standard token type
-                    null, // TODO: Fetch User entity by username if ID is needed here
+                    userDetails.getId(), // TODO: Fetch User entity by username if ID is needed here
                     userDetails.getUsername(),
-                    roles
+                    roles,
+                    userDetails.getEmail()
             ));
 
       //  } catch (AuthenticationException e) {

@@ -40,9 +40,14 @@ public class AuthService {
             throw new RuntimeException("Error: Username is already taken!");
             
         }
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new RuntimeException("Error: Email is already taken.");
+        }
 
         User user = new User();
         user.setUsername(registerRequest.getUsername());
+
+        user.setEmail(registerRequest.getEmail());
 
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
 
