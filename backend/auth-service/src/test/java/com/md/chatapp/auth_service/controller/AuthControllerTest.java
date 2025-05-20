@@ -70,7 +70,7 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("db_test_user_01"); 
         loginRequest.setPassword("password123");
-        loginRequest.setEmail("placeholder_1@example.com");
+        //loginRequest.setEmail("placeholder_1@example.com");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -89,7 +89,7 @@ class AuthControllerTest {
         LoginRequest loginRequest = new LoginRequest();
         loginRequest.setUsername("db_test_user_01"); // Use a known user
         loginRequest.setPassword("wrongpassword"); // Use incorrect password
-        loginRequest.setEmail("placeholder@email.com");
+        //loginRequest.setEmail("placeholder@email.com");
 
         // Act & Assert
         mockMvc.perform(post("/api/auth/login")
@@ -103,9 +103,9 @@ class AuthControllerTest {
     void loginUser_NotFound() throws Exception {
         // Arrange
         LoginRequest loginRequest = new LoginRequest();
-        loginRequest.setUsername("nosuchuser"); // Use non-existent user
+        loginRequest.setUsername("nosuchuser");
         loginRequest.setPassword("password123");
-        loginRequest.setEmail("placeholder@email.com");
+        //loginRequest.setEmail("placeholder@email.com");
 
         mockMvc.perform(post("/api/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)

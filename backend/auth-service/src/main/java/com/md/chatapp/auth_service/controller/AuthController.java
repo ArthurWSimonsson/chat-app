@@ -76,7 +76,7 @@ public class AuthController {
             return ResponseEntity.ok(new JwtResponse(
                     jwt,
                     "Bearer", // Standard token type
-                    userDetails.getId(), // TODO: Fetch User entity by username if ID is needed here
+                    userDetails.getId(), 
                     userDetails.getUsername(),
                     roles,
                     userDetails.getEmail()

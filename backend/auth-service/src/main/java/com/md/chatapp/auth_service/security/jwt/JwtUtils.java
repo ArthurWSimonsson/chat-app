@@ -79,7 +79,6 @@ public class JwtUtils {
         return false;
     }
 
-    // --- Get Username from Token ---
     public String getUserNameFromJwtToken(String token) {
         Claims claims = Jwts.parser()
                 .verifyWith(key())

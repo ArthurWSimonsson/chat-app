@@ -10,10 +10,16 @@ interface LoginCredentials {
     password: string;
 }
 
+interface RegisterCredentials {
+    username: string;
+    email: string;
+    password: string;
+}
+
 // Matches the actual JSON structure returned by your backend API
 interface JwtResponseData {
     token: string;
-    id: number; // <-- Adjusted to allow null based on your response!
+    id: number; 
     username: string;
     email: string;
     roles: string[];
@@ -21,15 +27,15 @@ interface JwtResponseData {
 }
 
 // Structure for the user object stored in Redux state
-export interface User { // Exporting User type might be useful elsewhere
-    id: number | null; // <-- Adjusted to allow null!
+export interface User { 
+    id: number | null; 
     username: string;
     email: string;
-    // roles?: string[]; // Optionally store roles if needed
+    roles?: string[]; // Optionally store roles if needed
 }
 
 // Structure of the Auth state slice
-export interface AuthState { // Exporting AuthState for RootState inference elsewhere if needed
+export interface AuthState {
     isAuthenticated: boolean;
     user: User | null;
     token: string | null;
@@ -58,6 +64,11 @@ const initialState: AuthState = {
     error: null,
 };
 
+interface RegistrationSuccessResponse {
+    message: string;
+    // userId?: number | null; // If backend returns user ID
+    // username?: string; // If backend returns username
+}
 
 // --- Async Thunk for Login Action ---
 export const loginUser = createAsyncThunk<
@@ -91,11 +102,11 @@ export const loginUser = createAsyncThunk<
 
             console.log('Login API Success Response:', data);
 
-            // --- Map response data to payload, handling the potentially null ID ---
             const userPayload: User = {
-                id: data.id, // data.id is null based on your example, which is now allowed
+                id: data.id, 
                 username: data.username,
                 email: data.email,
+                roles: data.roles
             };
 
             // Store token in localStorage for persistence
@@ -114,6 +125,45 @@ export const loginUser = createAsyncThunk<
         }
     }
 );
+
+export const registerUser = createAsyncThunk<
+    RegistrationSuccessResponse, // Type of the return value on success
+    RegisterCredentials,        // Type of the argument passed to the thunk
+    { rejectValue: string }     // Type of the value returned on failure
+>(
+    'auth/registerUser',
+    async (credentials: RegisterCredentials, { rejectWithValue }) => {
+        console.log('Dispatching registerUser thunk with:', credentials);
+        try {
+            // Adjust URL if your registration endpoint is different (e.g., /api/auth/signup)
+            const response = await fetch('http://localhost:8080/api/auth/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(credentials), // Send username, email, password
+            });
+
+            const data: RegistrationSuccessResponse | any = await response.json();
+
+            if (!response.ok) {
+                console.error('Registration API Error Response:', data);
+                // Use backend error message if available (e.g., from ApiResponse DTO)
+                const errorMessage = data?.message || data?.error || `Registration failed (${response.status})`;
+                return rejectWithValue(errorMessage);
+            }
+
+            console.log('Registration API Success Response:', data);
+            // Return the success response (e.g., { message: "User registered successfully!" })
+            return data as RegistrationSuccessResponse;
+
+        } catch (error: any) {
+            console.error('Registration Thunk Network/Processing Error:', error);
+            return rejectWithValue(error.message || 'Registration failed due to an unexpected error');
+        }
+    }
+);
+
 
 // --- Auth Slice Definition ---
 const authSlice = createSlice({
@@ -152,7 +202,7 @@ const authSlice = createSlice({
             .addCase(loginUser.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
                 state.isLoading = false;
                 state.isAuthenticated = true;
-                state.user = action.payload.user; // User data (id can be null)
+                state.user = action.payload.user; 
                 state.token = action.payload.token;
                 state.error = null;
             })
@@ -164,7 +214,25 @@ const authSlice = createSlice({
                 state.error = action.payload ?? 'Login failed. Unknown error.'; // Use error from rejectWithValue
                 if (typeof window !== 'undefined') {
                      localStorage.removeItem('authToken'); // Also clear storage on failure
-                }
+                }            
+            })
+            .addCase(registerUser.pending, (state) => {
+                state.isLoading = true;
+                state.error = null;
+                // state.registrationSuccess = false; // Reset on new attempt
+            })
+            .addCase(registerUser.fulfilled, (state, action) => { // No PayloadAction type needed if thunk doesn't return specific payload structure for state
+                state.isLoading = false;
+                state.error = null; // Clear any previous errors
+                // state.registrationSuccess = true; // Set success flag
+                // Note: We are NOT setting isAuthenticated or user/token here.
+                // Registration usually leads to the login page.
+                console.log("Registration fulfilled:", action.payload);
+            })
+            .addCase(registerUser.rejected, (state, action) => {
+                state.isLoading = false;
+                state.error = action.payload as string || 'Registration failed';
+                // state.registrationSuccess = false;
             });
     },
 });

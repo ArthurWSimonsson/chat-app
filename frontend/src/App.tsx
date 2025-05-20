@@ -9,8 +9,9 @@ import { useSelector } from 'react-redux'; // Hook to read Redux state
 
 // Import your page components (assuming you create these later)
 import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage'
 //import RegisterPage from './pages/RegisterPage';
-//import ChatPage from './pages/ChatPage';
+import ChatPage from './pages/ChatPage';
 // import NotFoundPage from './pages/NotFoundPage'; // Optional 404 page
 
 // Import Redux state selector and RootState type
