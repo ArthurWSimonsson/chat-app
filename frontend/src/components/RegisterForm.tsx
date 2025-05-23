@@ -3,7 +3,7 @@ import React, { useState, ChangeEvent, FormEvent, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { AppDispatch, RootState } from '../app/store';
-import { registerUser, clearAuthError } from '../features/auth/authSlice'; // Import registerUser
+import { registerUser, clearAuthError } from '../features/auth/authSlice'; 
 
 interface RegisterFormData {
     username: string;
