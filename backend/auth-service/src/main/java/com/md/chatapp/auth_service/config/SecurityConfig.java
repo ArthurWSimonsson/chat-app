@@ -26,7 +26,7 @@ import org.springframework.web.cors.CorsConfiguration;
 
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity(prePostEnabled = true) // Optional: enables @PreAuthorize etc.
+@EnableMethodSecurity(prePostEnabled = true) 
 public class SecurityConfig {
 
     @Autowired
@@ -62,11 +62,11 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setAllowCredentials(true); // Allow cookies/credentials if needed (often true)
-        configuration.setMaxAge(3600L); // Cache preflight response for 1 hour
+        configuration.setAllowCredentials(true); 
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration); // Apply this config to all paths
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 
@@ -79,11 +79,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Use STATELESS sessions
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll() // Allow access to login/register
-                        .requestMatchers("/api/test/**").permitAll() // Example: Allow test endpoints if any
+                        .requestMatchers("/api/test/**").permitAll() 
                         // Add rules for other endpoints:
                         // .requestMatchers("/api/admin/**").hasRole("ADMIN")
                         // .requestMatchers("/api/user/**").hasAnyRole("USER", "ADMIN")
-                        .anyRequest().authenticated() // All other requests require authentication
+                        .anyRequest().authenticated()
                 );
 
         http.authenticationProvider(authenticationProvider());

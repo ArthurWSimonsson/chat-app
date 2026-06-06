@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class); // Optional logger
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthService authService;
 
@@ -40,9 +40,10 @@ public class AuthController {
     public ResponseEntity<?> registerUser(@Valid @RequestBody RegisterRequest registerRequest) {
         logger.info("Attempting registration for user: {}", registerRequest.getUsername());
         //try {
-            authService.registerUser(registerRequest);
-            logger.info("User registered successfully: {}", registerRequest.getUsername());
-            return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
+        authService.registerUser(registerRequest);
+        logger.info("User registered successfully: {}", registerRequest.getUsername());
+        
+        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully!");
         //} catch (RuntimeException e) {
         //    logger.error("Registration failed for user {}: {}", registerRequest.getUsername(), e.getMessage());
         //    return ResponseEntity

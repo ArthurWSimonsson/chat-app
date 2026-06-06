@@ -2,6 +2,7 @@ package com.md.chatapp.auth_service.service;
 
 import com.md.chatapp.auth_service.dto.LoginRequest;
 import com.md.chatapp.auth_service.dto.RegisterRequest;
+import com.md.chatapp.auth_service.exception.UserAlreadyExistsException;
 import com.md.chatapp.auth_service.model.Role; 
 import com.md.chatapp.auth_service.model.User;
 import com.md.chatapp.auth_service.repository.UserRepository;
@@ -37,11 +38,12 @@ public class AuthService {
         
         if (userRepository.existsByUsername(registerRequest.getUsername())) {
             
-            throw new RuntimeException("Error: Username is already taken!");
+            throw new UserAlreadyExistsException("Error: Username is already taken!");
             
         }
         if (userRepository.existsByEmail(registerRequest.getEmail())) {
-            throw new RuntimeException("Error: Email is already taken.");
+            
+            throw new UserAlreadyExistsException("Error: Email is already in use!");
         }
 
         User user = new User();

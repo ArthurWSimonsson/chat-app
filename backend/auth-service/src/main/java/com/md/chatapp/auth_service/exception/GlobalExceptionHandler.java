@@ -1,7 +1,5 @@
 package com.md.chatapp.auth_service.exception;
 import com.md.chatapp.auth_service.dto.ApiResponse;
-// Import specific exceptions you might create later
-// import com.yourcompany.chatapp.auth.exception.UsernameAlreadyExistsException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,7 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus; // Optional: Set 
 
 import java.util.stream.Collectors;
 
-@ControllerAdvice // Makes this class intercept exceptions from Controllers
+@ControllerAdvice 
 public class GlobalExceptionHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
@@ -45,24 +43,29 @@ public class GlobalExceptionHandler {
 
     // Example Handler for a specific custom exception (if you create one)
     // Replace RuntimeException with your specific exception (e.g., UsernameAlreadyExistsException)
-    @ExceptionHandler(RuntimeException.class) // Catching Runtime temporarily, be more specific!
-    public ResponseEntity<ApiResponse> handleUsernameExistsException(RuntimeException ex) {
-        // Assuming this RuntimeException is thrown when username exists
-        if (ex.getMessage() != null && ex.getMessage().contains("Username is already taken")) {
-             logger.warn("Registration conflict: {}", ex.getMessage());
-             ApiResponse errorResponse = new ApiResponse(false, ex.getMessage());
-             return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT); // 409 Conflict is suitable
-        }
-        // If it's another RuntimeException, treat as internal server error
-        return handleGenericException(ex);
+    // @ExceptionHandler(RuntimeException.class)
+    // public ResponseEntity<ApiResponse> handleUsernameExistsException(RuntimeException ex) {
+    //     // Assuming this RuntimeException is thrown when username exists
+    //     if (ex.getMessage() != null && ex.getMessage().contains("Username is already taken")) {
+    //          logger.warn("Registration conflict: {}", ex.getMessage());
+    //          ApiResponse errorResponse = new ApiResponse(false, ex.getMessage());
+    //          return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT); // 409 Conflict is suitable
+    //     }
+    //     return handleGenericException(ex);
+    // }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT) // 409 Conflict
+    public ResponseEntity<ApiResponse> handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        logger.warn("Registration conflict: {}", ex.getMessage());
+        ApiResponse errorResponse = new ApiResponse(false, ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
-
-    // Generic handler for other unexpected exceptions
     @ExceptionHandler(Exception.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     public ResponseEntity<ApiResponse> handleGenericException(Exception ex) {
-        logger.error("An unexpected error occurred: {}", ex.getMessage(), ex); // Log the full stack trace for internal errors
+        logger.error("An unexpected error occurred: {}", ex.getMessage(), ex);
         ApiResponse errorResponse = new ApiResponse(false, "An internal server error occurred. Please try again later.");
         return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
